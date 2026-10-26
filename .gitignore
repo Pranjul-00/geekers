@@ -23,6 +23,8 @@ venv/
 # Bot runtime state & persistent caches
 subscriptions.json
 bots/**/subscriptions.json
+*.db
+*.sqlite3
 
 # Logs & OS
 *.log

@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "phrase": "PIECE OF CAKE",
+    "hint": "Something very easy to accomplish",
+    "category": "Idiom"
+  },
+  {
+    "id": 2,
+    "phrase": "BREAK A LEG",
+    "hint": "A superstitious way to wish good luck",
+    "category": "Theater & Performance"
+  },
+  {
+    "id": 3,
+    "phrase": "BITE THE BULLET",
+    "hint": "To face a painful situation with courage",
+    "category": "Idiom"
+  },
+  {
+    "id": 4,
+    "phrase": "SPILL THE BEANS",
+    "hint": "To reveal a secret prematurely",
+    "category": "Idiom"
+  },
+  {
+    "id": 5,
+    "phrase": "BARK UP WRONG TREE",
+    "hint": "Pursuing a mistaken line of thought",
+    "category": "Idiom"
+  },
+  {
+    "id": 6,
+    "phrase": "UNDER THE WEATHER",
+    "hint": "Feeling slightly ill or tired",
+    "category": "Health & Mood"
+  },
+  {
+    "id": 7,
+    "phrase": "CALL IT A DAY",
+    "hint": "Decide to stop working on something for now",
+    "category": "Work & Routine"
+  },
+  {
+    "id": 8,
+    "phrase": "ON CLOUD NINE",
+    "hint": "A state of pure euphoria or immense joy",
+    "category": "Feelings"
+  },
+  {
+    "id": 9,
+    "phrase": "BURN THE MIDNIGHT OIL",
+    "hint": "Working late into the night",
+    "category": "Study & Work"
+  },
+  {
+    "id": 10,
+    "phrase": "HIT THE JACKPOT",
+    "hint": "Achieve sudden massive success or wealth",
+    "category": "Luck & Success"
+  },
+  {
+    "id": 11,
+    "phrase": "THROUGH THE GRAPEVINE",
+    "hint": "Learning news through rumors or gossip",
+    "category": "Communication"
+  },
+  {
+    "id": 12,
+    "phrase": "A BLESSING IN DISGUISE",
+    "hint": "A good thing that initially seemed bad",
+    "category": "Perspective"
+  },
+  {
+    "id": 13,
+    "phrase": "LET SLEEPING DOGS LIE",
+    "hint": "Avoid restarting an old dispute or problem",
+    "category": "Wisdom"
+  },
+  {
+    "id": 14,
+    "phrase": "BEST OF BOTH WORLDS",
+    "hint": "Enjoying the advantages of two different things",
+    "category": "Situations"
+  },
+  {
+    "id": 15,
+    "phrase": "ELEPHANT IN THE ROOM",
+    "hint": "An obvious truth that is being ignored",
+    "category": "Social Dynamics"
+  },
+  {
+    "id": 16,
+    "phrase": "NO CRYING OVER SPILT MILK",
+    "hint": "Worrying about past mistakes won't change them",
+    "category": "Wisdom"
+  },
+  {
+    "id": 17,
+    "phrase": "THE BALL IS IN YOUR COURT",
+    "hint": "It is your turn to make the next move or decision",
+    "category": "Strategy"
+  },
+  {
+    "id": 18,
+    "phrase": "STEAL SOMEONE'S THUNDER",
+    "hint": "Taking attention or praise away from someone else",
+    "category": "Social"
+  },
+  {
+    "id": 19,
+    "phrase": "ON THE SAME PAGE",
+    "hint": "In complete agreement and mutual understanding",
+    "category": "Teamwork"
+  },
+  {
+    "id": 20,
+    "phrase": "CUP OF TEA",
+    "hint": "Something that aligns with one's personal preference",
+    "category": "Preferences"
+  },
+  {
+    "id": 21,
+    "phrase": "READ BETWEEN THE LINES",
+    "hint": "Discovering hidden meanings not openly stated",
+    "category": "Observation"
+  },
+  {
+    "id": 22,
+    "phrase": "TIME FLIES WHEN HAVING FUN",
+    "hint": "Hours slip by unnoticed during enjoyable moments",
+    "category": "Time"
+  },
+  {
+    "id": 23,
+    "phrase": "BACK TO THE DRAWING BOARD",
+    "hint": "Starting over after an initial attempt failed",
+    "category": "Problem Solving"
+  },
+  {
+    "id": 24,
+    "phrase": "BEAT AROUND THE BUSH",
+    "hint": "Avoiding the main topic or speaking indirectly",
+    "category": "Communication"
+  },
+  {
+    "id": 25,
+    "phrase": "HIT THE NAIL ON THE HEAD",
+    "hint": "Describing or solving something with exact precision",
+    "category": "Accuracy"
+  },
+  {
+    "id": 26,
+    "phrase": "A PENNY FOR YOUR THOUGHTS",
+    "hint": "Asking someone what they are pondering silently",
+    "category": "Conversation"
+  },
+  {
+    "id": 27,
+    "phrase": "COST AN ARM AND A LEG",
+    "hint": "Exceedingly expensive",
+    "category": "Value"
+  },
+  {
+    "id": 28,
+    "phrase": "DEVIL IN THE DETAILS",
+    "hint": "Small overlooked elements can cause major issues",
+    "category": "Analysis"
+  },
+  {
+    "id": 29,
+    "phrase": "DON'T JUDGE A BOOK BY ITS COVER",
+    "hint": "Outward appearance does not dictate true worth",
+    "category": "Wisdom"
+  },
+  {
+    "id": 30,
+    "phrase": "HOLD YOUR HORSES",
+    "hint": "Slow down and be patient",
+    "category": "Patience"
+  }
+]
