@@ -19,6 +19,7 @@ import asyncio
 import logging
 from datetime import date, datetime, timezone
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 import aiohttp
@@ -31,9 +32,13 @@ from dotenv import load_dotenv
 # Config & Logging
 # ---------------------------------------------------------------------------
 
+BASE_DIR = Path(__file__).resolve().parent
+# Load environment from bot directory first, then root / current working dir
+load_dotenv(BASE_DIR / ".env")
 load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
-COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "c!")
+
+TOKEN = os.getenv("CONTEXTO_DISCORD_TOKEN") or os.getenv("DISCORD_TOKEN")
+COMMAND_PREFIX = os.getenv("CONTEXTO_COMMAND_PREFIX") or os.getenv("COMMAND_PREFIX", "c!")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,8 +50,8 @@ log = logging.getLogger("contexto-bot")
 CONTEXTO_EPOCH = date(2022, 9, 18)
 BASE_API = "https://api.contexto.me/machado/en/game"
 
-# File to persist subscribed channels across restarts
-SUBSCRIPTIONS_FILE = "subscriptions.json"
+# File to persist subscribed channels across restarts (saved in bot directory)
+SUBSCRIPTIONS_FILE = BASE_DIR / "subscriptions.json"
 
 # Rank → emoji thresholds
 RANK_THRESHOLDS = [
@@ -953,8 +958,12 @@ async def prefix_help(ctx: commands.Context):
 # Entry Point
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def main():
     if not TOKEN:
-        log.error("DISCORD_TOKEN not found! Create a .env file with DISCORD_TOKEN=your_token")
+        log.error("DISCORD_TOKEN (or CONTEXTO_DISCORD_TOKEN) not found! Create a .env file with DISCORD_TOKEN=your_token")
         raise SystemExit(1)
     bot.run(TOKEN, log_handler=None)
+
+
+if __name__ == "__main__":
+    main()

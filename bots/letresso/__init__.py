@@ -1,0 +1,1 @@
+"""Letresso Discord Bot package."""

@@ -1,50 +1,71 @@
-# contexto-bot
+# Geekers
 
-A Discord bot that brings the [Contexto](https://contexto.me) word-guessing game to your server!
+A monorepo for Discord bots bringing our favorite daily web games directly to Discord servers!
 
-## Features
-- Daily Contexto game synced with the official site
-- Per-channel game sessions
-- Guess ranking with emoji color feedback
-- Hint system (shows your closest guess so far)
-- Give up to reveal the answer
-- Leaderboard tracking guesses per session
+## Games & Bots
 
-## Setup
+| Bot / Game | Directory | Description & Source | Status |
+|---|---|---|---|
+| **Contexto** | [`bots/contexto`](bots/contexto/) | Word proximity / semantic distance guessing game ([contexto.me](https://contexto.me)) | 🟢 Live / Ready |
+| **Wordle** | [`bots/wordle`](bots/wordle/) | Classic 5-letter word puzzle | 🟡 In Integration |
+| **Conexo** | [`bots/conexo`](bots/conexo/) | 4x4 group puzzle ([conexo.ws](https://conexo.ws)) | 🟡 Planned |
+| **Letresso** | [`bots/letresso`](bots/letresso/) | Daily letter placement and word creation game | 🟡 Planned |
+| **Expresso** | [`bots/expresso`](bots/expresso/) | Fast-paced daily word puzzle | 🟡 Planned |
 
-1. **Clone / download** this repo
-2. **Create a `.env` file** (copy from `.env.example`):
-   ```
-   DISCORD_TOKEN=your_bot_token_here
-   ```
-3. **Install dependencies** (uses `uv`):
-   ```bash
-   uv sync
-   ```
-4. **Run the bot:**
-   ```bash
-   uv run bot.py
-   ```
+---
 
-## Commands
+## Directory Structure
 
-| Command | Description |
-|---|---|
-| `/contexto start` | Start today's Contexto game in this channel |
-| `/contexto guess <word>` | Guess a word and see its rank |
-| `/contexto hint` | Show your closest guess so far |
-| `/contexto guesses` | List all your guesses this session, sorted by rank |
-| `/contexto giveup` | Reveal the answer and end the game |
+```
+geekers/
+├── .context/               # Autonomous Project Architect memory matrix
+├── bots/                   # Individual game bots
+│   ├── contexto/           # Contexto Discord bot
+│   │   ├── bot.py
+│   │   ├── README.md
+│   │   └── .env.example
+│   ├── conexo/             # Conexo bot (planned)
+│   ├── letresso/           # Letresso bot (planned)
+│   ├── expresso/           # Expresso bot (planned)
+│   └── wordle/             # Wordle bot (in integration)
+├── shared/                 # Common helpers, config loaders, and Discord UI modules
+├── pyproject.toml          # Monorepo dependencies & entrypoints
+├── uv.lock
+└── README.md
+```
 
-## Rank Color Guide
+---
 
-| Emoji | Rank Range | Meaning |
-|---|---|---|
-| 🟩 | 1–500 | Very close! |
-| 🟨 | 501–1500 | Getting warmer |
-| 🟧 | 1501–3000 | Far away |
-| 🟥 | 3000+ | Cold |
+## Getting Started
 
-## Notes
-- This bot uses Contexto's unofficial API for personal/educational use.
-- One game session per channel at a time.
+### 1. Requirements
+- Python 3.11+
+- [`uv`](https://docs.astral.sh/uv/) (recommended) or `pip`
+
+### 2. Setup Environment
+```bash
+git clone https://github.com/Pranjul-00/geekers.git
+cd geekers
+
+# Create root or bot-specific .env
+cp .env.example .env
+```
+Fill in your `DISCORD_TOKEN` in `.env`.
+
+### 3. Install Dependencies
+```bash
+uv sync
+```
+
+### 4. Running a Bot
+
+#### Contexto Bot:
+```bash
+# Using CLI script entrypoint
+uv run contexto-bot
+
+# Or via Python module
+uv run python -m bots.contexto.bot
+```
+
+See [`bots/contexto/README.md`](bots/contexto/README.md) for full commands list and configuration details.
