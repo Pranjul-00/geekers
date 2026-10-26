@@ -12,7 +12,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-EXPRESSO_EPOCH = date(2024, 1, 1)
+# Expresso epoch calibrated with official site: 2026-10-26 is Game #26
+EXPRESSO_EPOCH = date(2026, 10, 1)
 PHRASES_FILE = Path(__file__).resolve().parent / "phrases.json"
 
 
