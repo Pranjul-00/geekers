@@ -1,41 +1,58 @@
 # Geekers
 
-A monorepo for Discord bots bringing our favorite daily web games directly to Discord servers!
-
-## Games & Bots
-
-| Bot / Game | Directory | Engine / Language | Description & Source | Status |
-|---|---|---|---|---|
-| **Contexto** | [`bots/contexto`](bots/contexto/) | Rust (poise/serenity) + Python (discord.py) | Word proximity / semantic distance guessing game ([contexto.me](https://contexto.me)) | 🟢 Live / Ready |
-| **Expresso** | [`bots/expresso`](bots/expresso/) | Python (discord.py) | Fast-paced daily word puzzle & group comparison charts | 🟡 In Development |
-| **Wordle** | [`bots/wordle`](bots/wordle/) | Python (discord.py) | Classic 5-letter word puzzle | 🟡 In Integration |
-| **Conexo** | [`bots/conexo`](bots/conexo/) | Python (discord.py) | 4x4 group puzzle ([conexo.ws](https://conexo.ws)) | 🟡 Planned |
-| **Letresso** | [`bots/letresso`](bots/letresso/) | Python (discord.py) | Daily letter placement and word creation game | 🟡 Planned |
+A modular monorepo for Discord bots bringing popular daily web games directly into Discord servers.
 
 ---
 
-## Directory Structure
+## Overview
+
+The Geekers repository hosts a collection of independent Discord bots designed for cooperative and competitive daily puzzle games. Each bot operates as an isolated package with its own command set, runtime configuration, and persistence layer, while sharing common infrastructure, environment management, and workspace tooling.
+
+### Available and Planned Bots
+
+| Game / Bot | Directory | Runtime | Description | Status |
+|---|---|---|---|---|
+| **Contexto** | `bots/contexto/` | Rust (poise/serenity) + Python (discord.py) | Semantic distance word guessing game based on Contexto.me. | Active |
+| **Expresso** | `bots/expresso/` | Python (discord.py) | Daily idiom and phrase deduction with group standings and reminders. | Active |
+| **Wordle** | `bots/wordle/` | Python (discord.py) | Classic 5-letter word puzzle with per-user and per-channel sessions. | Integration |
+| **Conexo** | `bots/conexo/` | Python (discord.py) | 4x4 grouping deduction game based on Conexo.ws. | Planned |
+| **Letresso** | `bots/letresso/` | Python (discord.py) | Daily letter placement and word construction game. | Planned |
+
+---
+
+## Repository Architecture
 
 ```
 geekers/
-├── .context/               # Autonomous Project Architect memory matrix
-├── bots/                   # Individual game bots
-│   ├── contexto/           # Contexto Discord bot (Rust & Python engines)
+├── .agents/                    # Tooling rules and workflows
+│   ├── rules/
+│   └── workflows/
+├── .context/                   # Project memory matrix (architecture, tasks, decisions)
+├── bots/                       # Isolated bot applications
+│   ├── contexto/               # Contexto bot (Rust high-performance engine & Python edition)
 │   │   ├── Cargo.toml
 │   │   ├── src/main.rs
 │   │   ├── bot.py
 │   │   ├── README.md
 │   │   └── .env.example
-│   ├── expresso/           # Expresso Discord bot
+│   ├── expresso/               # Expresso bot (daily phrases, comparison charts, reminders)
+│   │   ├── bot.py
+│   │   ├── game.py
+│   │   ├── charts.py
+│   │   ├── reminders.py
+│   │   ├── storage.py
+│   │   ├── phrases.json
 │   │   ├── README.md
-│   │   └── ...
-│   ├── conexo/             # Conexo bot (planned)
-│   ├── letresso/           # Letresso bot (planned)
-│   └── wordle/             # Wordle bot (in integration)
-├── shared/                 # Common helpers, config loaders, and Discord UI modules
-├── Cargo.toml              # Root Rust workspace
-├── pyproject.toml          # Monorepo Python dependencies & entrypoints
-├── uv.lock
+│   │   └── .env.example
+│   ├── conexo/                 # Conexo bot specifications and assets
+│   ├── letresso/               # Letresso bot specifications and assets
+│   └── wordle/                 # Wordle bot specifications and assets
+├── shared/                     # Shared utilities (configuration, formatting, HTTP helpers)
+│   ├── __init__.py
+│   └── config.py
+├── Cargo.toml                  # Root Cargo workspace manifest
+├── pyproject.toml              # Monorepo Python dependencies and CLI entrypoints
+├── uv.lock                     # Python dependency lockfile
 └── README.md
 ```
 
@@ -43,40 +60,100 @@ geekers/
 
 ## Getting Started
 
-### 1. Requirements
-- Python 3.11+ with [`uv`](https://docs.astral.sh/uv/)
-- Rust toolchain (`cargo` / `rustup`) for Rust engines
+### Prerequisites
 
-### 2. Configure Environment
+- **Python**: Version 3.11 or newer. We recommend using [`uv`](https://docs.astral.sh/uv/) for deterministic dependency management.
+- **Rust Toolchain**: `cargo` and `rustup` (required for running the Rust edition of Contexto).
+
+### Environment Configuration
+
+1. Copy the example environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open `.env` and set your Discord bot credentials:
+   ```env
+   # Unified Discord Bot Token (used by default across all bots)
+   DISCORD_TOKEN=your_discord_bot_token_here
+
+   # Optional per-bot overrides
+   CONTEXTO_DISCORD_TOKEN=your_contexto_token
+   EXPRESSO_DISCORD_TOKEN=your_expresso_token
+
+   # Optional command prefix overrides
+   CONTEXTO_COMMAND_PREFIX=c!
+   EXPRESSO_COMMAND_PREFIX=e!
+   ```
+
+3. Ensure **Message Content Intent** is enabled under the **Bot** tab in the [Discord Developer Portal](https://discord.com/developers/applications) for chat auto-guessing functionality.
+
+### Installing Dependencies
+
+#### Python (using uv):
 ```bash
-git clone https://github.com/Pranjul-00/geekers.git
-cd geekers
-
-cp .env.example .env
+uv sync
 ```
-Fill in your `DISCORD_TOKEN` in `.env`.
 
-### 3. Running Bots
+#### Python (using standard pip):
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
 
-#### Contexto Bot
-- **Rust Engine:**
-  ```bash
-  cargo run --package contexto-bot
-  # Or with release optimizations:
-  cargo run --package contexto-bot --release
-  ```
-- **Python Edition:**
-  ```bash
-  uv run contexto-bot
-  # or
-  uv run python -m bots.contexto.bot
-  ```
+---
 
-#### Expresso Bot
+## Running the Bots
+
+### 1. Contexto Bot
+
+#### Rust Engine (High Performance)
+The Rust engine features an in-memory word cache and keep-alive HTTP connection pooling:
+
+```bash
+# Debug build
+cargo run --package contexto-bot
+
+# Optimized release build
+cargo run --package contexto-bot --release
+```
+
+Alternatively, from within the bot directory:
+```bash
+cd bots/contexto
+cargo run --release
+```
+
+#### Python Edition
+```bash
+uv run contexto-bot
+# or
+uv run python -m bots.contexto.bot
+```
+
+For complete command lists and API details, see [`bots/contexto/README.md`](bots/contexto/README.md).
+
+---
+
+### 2. Expresso Bot
+
+The Expresso bot includes daily phrase matching, automated midnight drops, evening streak reminders, and side-by-side group standings:
+
 ```bash
 uv run expresso-bot
 # or
 uv run python -m bots.expresso.bot
 ```
 
-See individual bot directories in `bots/` for gameplay rules, commands, and options.
+For complete command lists and rules, see [`bots/expresso/README.md`](bots/expresso/README.md).
+
+---
+
+## Development & Contribution Guidelines
+
+- **Branch Strategy**: Active feature branches should be based off `main`.
+- **Bot Isolation**: Keep bot-specific business logic, storage files, and assets inside `bots/<game_name>/`.
+- **Shared Code**: Code reused across two or more bots belongs in `shared/`.
+- **State Persistence**: Avoid committing runtime data files (`subscriptions.json`, `*.db`). These are covered by `.gitignore`.
+- **Verification**: Run `uv sync` and compile checks before submitting changes.

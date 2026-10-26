@@ -1,78 +1,84 @@
-# Contexto Discord Bot 🦀 / 🐍
+# Contexto Discord Bot
 
-Brings the [Contexto](https://contexto.me) word-guessing game to Discord.
-Features a high-performance **Rust engine** (poise/serenity) alongside the **Python/uv** edition.
-
----
-
-## ⚡ Highlights
-- **🏆 Winning Embed:** Correctly identifies the secret word at rank `#0` with a celebratory gold embed, stats, and victory message.
-- **💡 Chat Auto-Guessing:** Start a game with `c!start` or `/start`, then simply type your word guesses directly in chat! No command syntax required.
-- **⚡ Blazing Fast Engine (Rust):** In-memory word cache and keep-alive HTTP connection pooling for sub-millisecond guess responses.
-- **🔁 24h Daily Puzzles & Historical Games:** Syncs with the official Contexto daily game or lets you replay any past game number (`c!start 500`).
-- **🔔 Channel Subscriptions:** Automatically broadcasts new puzzles at midnight UTC to subscribed channels.
-- **🎯 Dual Command System:** Full support for both modern Slash commands (`/start`, `/hint`) and Prefix commands (`c!start`, `c!giveup`, configurable via `.env`).
+Brings the [Contexto](https://contexto.me) word-guessing game to Discord. Includes both a high-performance Rust engine (using Poise and Serenity) and a Python edition (using discord.py).
 
 ---
 
-## 🎮 Rank Color Guide
+## Features
 
-| Emoji | Rank Range | Meaning |
+- **Rank #0 Secret Word Handling**: Properly identifies the target word at rank #0 with an embed, summary statistics, and victory confirmation.
+- **Chat Auto-Guessing**: Start a game with `c!start` or `/start`, then type single words directly into the channel to submit guesses without repeated command invocations.
+- **In-Memory Cache (Rust Engine)**: Caches queried words in memory and maintains connection pooling for sub-millisecond guess resolution.
+- **Daily and Historical Games**: Automatically syncs with the official daily Contexto game or allows selecting any historical game number (`c!start 500`).
+- **Channel Subscriptions**: Broadcasts new daily puzzles at midnight UTC to subscribed Discord channels.
+- **Dual Command Interfaces**: Full parity between slash commands (`/start`, `/hint`, `/guess`) and prefix commands (`c!start`, `c!hint`, `c!guess`).
+
+---
+
+## Rank Proximity Guide
+
+| Rank Range | Proximity Category | Feedback Meaning |
 |:---:|:---:|---|
-| 🏆 | **#0** | **Secret Word Found (Winner!)** |
-| 🟩 | **1 – 500** | Very close! |
-| 🟨 | **501 – 1,500** | Getting warmer... |
-| 🟧 | **1,501 – 3,000** | Still pretty far... |
-| 🟥 | **3,000+** | Ice cold! |
+| **#0** | Winner | Secret word identified |
+| **1 - 500** | Top Tier | Very close |
+| **501 - 1,500** | Warm Tier | Getting warmer |
+| **1,501 - 3,000** | Far Tier | Still pretty far |
+| **3,000+** | Cold Tier | Cold |
 
 ---
 
-## 📜 Commands
+## Command Reference
 
-Commands work as both **Slash commands** (e.g. `/start` or `/contexto start`) and **Prefix commands** (e.g. `c!start`):
+Commands are available via slash commands (`/start`, `/contexto start`) or message prefixes (default `c!`):
 
-| Command | Aliases | Description |
+| Prefix Command | Aliases | Description |
 |---|---|---|
-| `c!start [game]` | `c!play`, `c!begin` | Start today's puzzle or pick a past game number |
-| `c!guess <word>` | — | Guess a word manually (or just type the word!) |
-| `c!hint` | — | Reveal your closest guess so far |
-| `c!guesses` | `c!list`, `c!history` | Show top guesses sorted by closeness |
-| `c!giveup` | `c!quit` | End the current game and reveal the answer |
-| `c!today` | — | Check today's game number and channel status |
-| `c!subscribe` | — | Subscribe the channel to automatic 24h puzzle drops |
-| `c!unsubscribe` | — | Stop automatic daily announcements |
-| `c!chelp` | `c!help`, `c!commands` | Show help and color guide |
+| `c!start [game]` | `c!play`, `c!begin` | Start today's puzzle or load a past game by number |
+| `c!guess <word>` | — | Explicitly submit a word guess (or type directly in chat) |
+| `c!hint` | — | Display the closest guess made so far in this session |
+| `c!guesses` | `c!list`, `c!history` | Display top guesses sorted by proximity rank |
+| `c!giveup` | `c!quit` | End the current session and reveal the secret word |
+| `c!today` | — | Check today's game number and current channel session status |
+| `c!subscribe` | — | Subscribe the current channel to automated daily puzzle drops |
+| `c!unsubscribe` | — | Unsubscribe the channel from daily announcements |
+| `c!chelp` | `c!help`, `c!commands` | Show help menu and proximity guide |
 
 ---
 
-## 🚀 Setup & Running
+## Running Contexto
 
-### Option A: Rust Engine (Recommended for Performance)
-Requires Rust toolchain (`rustup` / `cargo`).
+### Option A: Rust Engine (Recommended)
+Prerequisites: Rust toolchain (`cargo` / `rustup`).
+
+From the repository root:
 ```bash
-# From workspace root:
-cargo run --package contexto-bot
+cargo run --package contexto-bot --release
+```
 
-# Or inside bots/contexto:
+Or from `bots/contexto`:
+```bash
 cargo run --release
 ```
 
 ### Option B: Python Edition
-Requires Python 3.11+ and `uv`.
+Prerequisites: Python 3.11+ and `uv`.
+
+From the repository root:
 ```bash
-# From workspace root:
-uv run python -m bots.contexto.bot
-# or
 uv run contexto-bot
+# or
+uv run python -m bots.contexto.bot
 ```
 
 ### Configuration
-Set environment variables in `.env` (or `bots/contexto/.env`):
+Set variables in `bots/contexto/.env` or repository root `.env`:
 ```env
 DISCORD_TOKEN=your_bot_token_here
 COMMAND_PREFIX=c!
-# Optional override:
+
+# Optional overrides:
 CONTEXTO_DISCORD_TOKEN=your_bot_token_here
 CONTEXTO_COMMAND_PREFIX=c!
 ```
-> **Note:** Ensure **Message Content Intent** is enabled under the **Bot** tab in the Discord Developer Portal so the bot can read words in chat for auto-guessing!
+
+Ensure **Message Content Intent** is enabled under the **Bot** tab in the Discord Developer Portal so the bot can read words in chat for auto-guessing.
