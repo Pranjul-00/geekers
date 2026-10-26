@@ -21,6 +21,7 @@ from .charts import generate_daily_comparison_embed, generate_head_to_head_embed
 from .game import ExpressoCatalog, ExpressoSession
 from .reminders import ExpressoScheduler
 from .storage import ExpressoStorage, PlayerResult
+from shared.hub import GeekersHubView
 
 # ---------------------------------------------------------------------------
 # Config & Setup
@@ -309,9 +310,24 @@ async def slash_unsubscribe(interaction: discord.Interaction):
 bot.tree.add_command(expresso_group)
 
 
+@bot.tree.command(name="geekers", description="Open the Geekers Game Hub to select games and view stats")
+async def slash_geekers(interaction: discord.Interaction):
+    guild_id = interaction.guild_id or 0
+    view = GeekersHubView(interaction.user, guild_id, interaction.channel_id, storage, sessions)
+    embed = view.render_embed()
+    await interaction.response.send_message(embed=embed, view=view)
+
+
 # ---------------------------------------------------------------------------
 # Prefix Commands (Default: e!)
 # ---------------------------------------------------------------------------
+
+@bot.command(name="geekers", aliases=["menu", "hub", "games"])
+async def prefix_geekers(ctx: commands.Context):
+    guild_id = ctx.guild.id if ctx.guild else 0
+    view = GeekersHubView(ctx.author, guild_id, ctx.channel.id, storage, sessions)
+    embed = view.render_embed()
+    await ctx.send(embed=embed, view=view)
 
 @bot.command(name="start", aliases=["play", "begin"])
 async def prefix_start(ctx: commands.Context, game: Optional[int] = None):

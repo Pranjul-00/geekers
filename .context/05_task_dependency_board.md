@@ -25,10 +25,13 @@
 ### Epic 3: Expresso Bot Implementation (Completed)
 - [x] Create daily phrases catalog (`bots/expresso/phrases.json`).
 - [x] Implement phrase guessing game engine (`bots/expresso/game.py`) with Wordle-style feedback.
+- [x] Calibrate daily epoch date to synchronize with official site (today is #26).
+- [x] Implement detailed letter-by-letter tile feedback and status breakdown (Green/Yellow/Gray explanations, word lengths, letter tracker).
 - [x] Implement SQLite persistence for scores, streaks, and subscriptions (`bots/expresso/storage.py`).
 - [x] Build side-by-side comparison charts & head-to-head friend stats (`bots/expresso/charts.py`).
 - [x] Build automated daily midnight drop and evening reminder scheduler (`bots/expresso/reminders.py`).
 - [x] Implement dual command router (Slash `/expresso` + Prefix `e!`) and auto-guess in `bots/expresso/bot.py`.
+- [x] Build unified `/geekers` interactive game hub with personalized dropdown menu and status checks (`shared/hub.py`).
 - [x] Register `expresso-bot` CLI entrypoint in `pyproject.toml` and verify `uv sync`.
 
 ### Epic 4: Wordle Bot Migration & Integration

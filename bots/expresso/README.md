@@ -25,6 +25,7 @@ A daily phrase and idiom guessing bot for Discord servers, designed for group co
 
 | Slash Command | Prefix Command | Description |
 |---|---|---|
+| `/geekers` | `e!geekers` (or `e!menu`) | Open interactive game hub dropdown with personalized stats |
 | `/expresso start [game]` | `e!start [game]` | Start today's puzzle or replay a past game by number |
 | `/expresso chart` | `e!chart` | View the daily side-by-side group standings |
 | `/expresso compare @friend` | `e!compare @friend` | Compare stats head-to-head with a friend |

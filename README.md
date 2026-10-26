@@ -106,6 +106,9 @@ pip install -e .
 
 ## Running the Bots
 
+### Universal Game Hub (`/geekers`)
+Players can type `/geekers` (or prefix `e!geekers` / `e!menu`) to open an interactive personalized dropdown menu showing their personal stats for each daily game (status today, total solved, streaks, average guesses) along with direct action buttons to start puzzles or view standings.
+
 ### 1. Contexto Bot
 
 #### Rust Engine (High Performance)
