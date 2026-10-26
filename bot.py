@@ -33,6 +33,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "c!")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -327,7 +328,8 @@ def make_daily_announce_embed(game_id: int) -> discord.Embed:
 class ContextoBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
-        super().__init__(command_prefix="!", intents=intents)
+        intents.message_content = True  # Required for prefix commands + auto-guess
+        super().__init__(command_prefix=COMMAND_PREFIX, intents=intents)
 
         # channel_id → GameSession (one active session per channel)
         self.sessions: dict[int, GameSession] = {}
@@ -357,7 +359,63 @@ class ContextoBot(commands.Bot):
     async def on_ready(self):
         log.info("Logged in as %s (ID: %s)", self.user, self.user.id)
         await self.change_presence(
-            activity=discord.Game(name="Contexto | /contexto start")
+            activity=discord.Game(name=f"Contexto | {COMMAND_PREFIX}start")
+        )
+
+    async def on_message(self, message: discord.Message):
+        # Always process prefix commands first
+        await self.process_commands(message)
+
+        # Ignore bots and messages that start with the prefix (already handled above)
+        if message.author.bot:
+            return
+        if message.content.startswith(COMMAND_PREFIX):
+            return
+
+        # Auto-guess: if there's an active game in this channel, treat single words as guesses
+        session = self.sessions.get(message.channel.id)
+        if not session or session.solved or session.given_up:
+            return
+
+        word = message.content.strip().lower()
+
+        # Must be a single alphabetic word
+        if not word or not word.isalpha() or " " in word:
+            return
+
+        # Duplicate guess — reply with the cached rank immediately
+        existing = session.already_guessed(word)
+        if existing:
+            emoji, label = rank_emoji_and_label(existing.rank)
+            await message.reply(
+                embed=make_guess_embed(
+                    existing.word, existing.rank,
+                    session.guess_count(), session.game_id, is_repeat=True,
+                ),
+                mention_author=False,
+            )
+            return
+
+        # Fetch from Contexto API
+        async with message.channel.typing():
+            rank = await fetch_rank(self.http_session, session.game_id, word)
+
+        if rank is None:
+            await message.reply(
+                f"❓ **`{word}`** isn't in Contexto's vocabulary — try another word!",
+                mention_author=False,
+            )
+            return
+
+        entry = GuessEntry(word=word, rank=rank)
+        session.guesses.append(entry)
+
+        if rank == 1:
+            session.solved = True
+
+        await message.reply(
+            embed=make_guess_embed(word, rank, session.guess_count(), session.game_id),
+            mention_author=False,
         )
 
     # ------------------------------------------------------------------
@@ -765,6 +823,130 @@ async def contexto_unsubscribe(interaction: discord.Interaction):
 
 
 bot.tree.add_command(contexto_group)
+
+
+# ---------------------------------------------------------------------------
+# Prefix Commands  (c!start, c!giveup, c!hint, c!guesses, c!today, c!help)
+# These mirror the slash commands so users have both options.
+# ---------------------------------------------------------------------------
+
+@bot.command(name="start", aliases=["play", "begin"])
+async def prefix_start(ctx: commands.Context, game: Optional[int] = None):
+    """Start today's game or a specific game number. Usage: c!start [game_number]"""
+    channel_id = ctx.channel.id
+
+    if game is not None:
+        max_id = get_max_game_id()
+        if game < 1 or game > max_id:
+            await ctx.reply(
+                f"❌ Invalid game number. Pick between **1** and **{max_id}**.",
+                mention_author=False,
+            )
+            return
+        game_id = game
+    else:
+        game_id = get_todays_game_id()
+
+    existing = bot.sessions.get(channel_id)
+    if existing and not existing.solved and not existing.given_up:
+        await ctx.reply(
+            f"⚠️ A game is already running! (Game #{existing.game_id})\n"
+            f"Just type a word to guess, or use `{COMMAND_PREFIX}giveup` to end it.",
+            mention_author=False,
+        )
+        return
+
+    async with ctx.typing():
+        if game is not None and not await verify_game_exists(bot.http_session, game_id):
+            await ctx.reply(
+                f"❌ Game #{game_id} doesn't exist yet. Try a lower number!",
+                mention_author=False,
+            )
+            return
+
+    bot.sessions[channel_id] = GameSession(
+        game_id=game_id,
+        channel_id=channel_id,
+        started_by=ctx.author.id,
+    )
+    log.info("Game #%d started in channel %d by %s (prefix)", game_id, channel_id, ctx.author)
+    await ctx.send(embed=make_start_embed(game_id, is_daily=(game is None)))
+
+
+@bot.command(name="giveup", aliases=["quit", "give_up"])
+async def prefix_giveup(ctx: commands.Context):
+    """End the current game. Usage: c!giveup"""
+    session = bot.sessions.get(ctx.channel.id)
+    if not session:
+        await ctx.reply(f"❌ No game is running! Use `{COMMAND_PREFIX}start` to begin.", mention_author=False)
+        return
+    if session.solved or session.given_up:
+        await ctx.reply("This game is already over.", mention_author=False)
+        return
+    session.given_up = True
+    await ctx.send(embed=make_giveup_embed(session))
+
+
+@bot.command(name="hint")
+async def prefix_hint(ctx: commands.Context):
+    """Show your closest guess so far. Usage: c!hint"""
+    session = bot.sessions.get(ctx.channel.id)
+    if not session:
+        await ctx.reply(f"❌ No game is running! Use `{COMMAND_PREFIX}start` to begin.", mention_author=False)
+        return
+    await ctx.send(embed=make_hint_embed(session))
+
+
+@bot.command(name="guesses", aliases=["list", "history"])
+async def prefix_guesses(ctx: commands.Context):
+    """List all guesses sorted by rank. Usage: c!guesses"""
+    session = bot.sessions.get(ctx.channel.id)
+    if not session:
+        await ctx.reply(f"❌ No game is running! Use `{COMMAND_PREFIX}start` to begin.", mention_author=False)
+        return
+    await ctx.send(embed=make_guesses_embed(session))
+
+
+@bot.command(name="today")
+async def prefix_today(ctx: commands.Context):
+    """Show today's game number and status. Usage: c!today"""
+    game_id = get_todays_game_id()
+    session = bot.sessions.get(ctx.channel.id)
+    embed = discord.Embed(title="🗓️ Today's Contexto", color=discord.Color.blurple())
+    embed.add_field(name="Game #", value=str(game_id), inline=True)
+    embed.add_field(name="Date", value=str(date.today()), inline=True)
+    if session:
+        status = "✅ Solved!" if session.solved else ("🏳️ Ended" if session.given_up else "🎮 In Progress")
+        embed.add_field(name="This channel", value=f"Game #{session.game_id} — {status}", inline=False)
+    else:
+        embed.add_field(name="This channel", value=f"No active game. Use `{COMMAND_PREFIX}start`!", inline=False)
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="chelp", aliases=["commands"])
+async def prefix_help(ctx: commands.Context):
+    """Show all available commands. Usage: c!chelp"""
+    embed = discord.Embed(
+        title="🧠 Contexto Bot — Commands",
+        description=(
+            f"**Prefix commands** (prefix: `{COMMAND_PREFIX}`)\n"
+            f"`{COMMAND_PREFIX}start [game]` — Start today's or a specific game\n"
+            f"`{COMMAND_PREFIX}giveup` — End the current game\n"
+            f"`{COMMAND_PREFIX}hint` — Show your best guess so far\n"
+            f"`{COMMAND_PREFIX}guesses` — List all guesses sorted by rank\n"
+            f"`{COMMAND_PREFIX}today` — Show today's game info\n\n"
+            "**Slash commands** — same features, type `/contexto`\n\n"
+            "💡 **Once a game starts, just type any word to guess!**\n"
+            "No command needed — the bot auto-detects single words."
+        ),
+        color=discord.Color.blurple(),
+    )
+    embed.add_field(
+        name="Rank colors",
+        value="🟩 Top 500 · 🟨 Top 1,500 · 🟧 Top 3,000 · 🟥 3,000+",
+        inline=False,
+    )
+    await ctx.send(embed=embed)
 
 
 # ---------------------------------------------------------------------------
