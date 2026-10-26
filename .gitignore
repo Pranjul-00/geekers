@@ -1,16 +1,21 @@
+# Rust build
+target/
+Cargo.lock
+
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
 build/
 dist/
 wheels/
 *.egg-info
+.python-version
 
 # Virtual environments
-.venv
+.venv/
 venv/
 
-# Environment files
+# Environment files & configs
 .env
 *.env
 !.env.example
@@ -19,10 +24,12 @@ venv/
 subscriptions.json
 bots/**/subscriptions.json
 
-# IDE & OS
+# Logs & OS
+*.log
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
 
-# Graphify build outputs (reproducible from repo)
+# Graphify build outputs
 graphify-out/
