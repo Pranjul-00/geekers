@@ -149,16 +149,35 @@ async def handle_guess_response(
         del sessions[channel.id]
         await channel.send(embed=embed)
     else:
-        # Provide Wordle-style feedback
+        # Provide detailed Wordle-style letter-by-letter feedback
         embed = discord.Embed(
-            title=f"☕ Guess #{len(session.guesses)}: {feedback.guess_text}",
-            description=(
-                f"Feedback: `{feedback.feedback_emojis}`\n\n"
-                f"**Board:**\n`{feedback.revealed_board}`"
-            ),
+            title=f"☕ Expresso — Guess #{len(session.guesses)}: {feedback.guess_text}",
             color=discord.Color.from_rgb(186, 110, 48),
         )
-        embed.set_footer(text=f"Guessed by {user.display_name} · Keep typing words or {COMMAND_PREFIX}hint")
+        embed.add_field(
+            name="🔤 Tile Feedback",
+            value=feedback.feedback_line if feedback.feedback_line else "`None`",
+            inline=False,
+        )
+        embed.add_field(
+            name="📋 Letter Breakdown",
+            value=feedback.explanation,
+            inline=False,
+        )
+        embed.add_field(
+            name="🧩 Current Phrase Board",
+            value=f"{feedback.revealed_board}\n*{feedback.word_lengths_info}*",
+            inline=False,
+        )
+
+        found_str = ", ".join(feedback.found_letters) if feedback.found_letters else "None yet"
+        elim_str = ", ".join(feedback.eliminated_letters) if feedback.eliminated_letters else "None yet"
+        embed.add_field(
+            name="🔠 Letter Tracker",
+            value=f"• **Found in Phrase:** {found_str}\n• **Not in Phrase:** {elim_str}",
+            inline=False,
+        )
+        embed.set_footer(text=f"Guessed by {user.display_name} · Keep typing words or use {COMMAND_PREFIX}hint")
         await channel.send(embed=embed)
 
 
@@ -189,7 +208,8 @@ async def slash_start(interaction: discord.Interaction, game: Optional[int] = No
         description=(
             f"**Category:** {puzzle.category}\n"
             f"**Words:** {len(puzzle.phrase.split())} words\n\n"
-            f"**Board:**\n`{session.get_masked_board()}`\n\n"
+            f"**Current Board:**\n{session.get_masked_board()}\n"
+            f"*{session.get_word_lengths_info()}*\n\n"
             "💡 **Simply type guesses directly in chat!**\n"
             f"Or use `/expresso hint` or `{COMMAND_PREFIX}giveup` if stumped."
         ),
@@ -309,8 +329,9 @@ async def prefix_start(ctx: commands.Context, game: Optional[int] = None):
         description=(
             f"**Category:** {puzzle.category}\n"
             f"**Words:** {len(puzzle.phrase.split())} words\n\n"
-            f"**Board:**\n`{session.get_masked_board()}`\n\n"
-            f"💡 **Type any word or phrase in chat to guess!**\n"
+            f"**Current Board:**\n{session.get_masked_board()}\n"
+            f"*{session.get_word_lengths_info()}*\n\n"
+            "💡 **Type any word or phrase in chat to guess!**\n"
             f"Or use `{COMMAND_PREFIX}hint` or `{COMMAND_PREFIX}giveup`."
         ),
         color=discord.Color.from_rgb(212, 143, 56),
