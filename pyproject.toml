@@ -15,12 +15,16 @@ dependencies = [
 ]
 
 [project.scripts]
+geekers = "geekers:main"
 contexto-bot = "bots.contexto.bot:main"
 expresso-bot = "bots.expresso.bot:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["geekers"]
 
 [tool.setuptools.packages.find]
 where = ["."]

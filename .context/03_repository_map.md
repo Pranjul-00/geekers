@@ -49,6 +49,7 @@ geekers/
 │   ├── __init__.py                     # Shared package initializer
 │   ├── config.py                       # Hierarchical environment loader (bot-local -> root)
 │   └── hub.py                          # Unified /geekers dropdown menu & personalized game hub
+├── geekers.py                          # Unified bot runner executing all daily games under one process
 ├── Cargo.toml                          # Root Rust Cargo workspace
 ├── pyproject.toml                      # Monorepo Python dependencies, build-system, and scripts
 ├── .env.example                        # Template for repository-wide and per-bot environment variables

@@ -42,6 +42,23 @@ class GameSelectionDropdown(discord.ui.Select):
         else:
             expresso_status = "⚪ Not played today"
 
+        # Check Contexto session status in channel
+        try:
+            from bots.contexto.bot import bot as contexto_bot, get_todays_game_id
+            c_today_id = get_todays_game_id()
+            c_session = contexto_bot.sessions.get(channel_id)
+            if c_session:
+                if c_session.solved:
+                    contexto_status = f"✅ Solved Game #{c_session.game_id}"
+                elif c_session.given_up:
+                    contexto_status = f"❌ Surrendered Game #{c_session.game_id}"
+                else:
+                    contexto_status = f"⏳ Game #{c_session.game_id} in progress"
+            else:
+                contexto_status = f"⚪ Game #{c_today_id} ready to play"
+        except Exception:
+            contexto_status = "Active · c!start or /start"
+
         options = [
             discord.SelectOption(
                 label=f"☕ Expresso (Daily #{today_expresso.game_id})",
@@ -52,7 +69,7 @@ class GameSelectionDropdown(discord.ui.Select):
             discord.SelectOption(
                 label="🧠 Contexto (Proximity Guesser)",
                 value="contexto",
-                description="Status: Active · Play with c!start or /start",
+                description=f"Status: {contexto_status[:40]}",
             ),
             discord.SelectOption(
                 label="🟩 Wordle (5-Letter Daily)",
@@ -126,10 +143,25 @@ class PlayNowButton(discord.ui.Button):
                 color=discord.Color.from_rgb(212, 143, 56),
             )
             await interaction.response.send_message(embed=embed)
+
         elif view.current_game == "contexto":
-            await interaction.response.send_message(
-                "🧠 **Contexto Bot** is ready! Start a game with `c!start` or `/start`, then type single words in chat!",
-            )
+            from bots.contexto.bot import bot as contexto_bot, get_todays_game_id, make_start_embed, GameSession
+            channel_id = interaction.channel_id
+            if channel_id in contexto_bot.sessions and not contexto_bot.sessions[channel_id].solved:
+                session = contexto_bot.sessions[channel_id]
+                best = session.best_guess()
+                best_str = f"Best guess: `{best.word}` (Rank #{best.rank})" if best else "No guesses yet"
+                await interaction.response.send_message(
+                    f"⚠️ A Contexto game (#{session.game_id}) is already active in this channel!\n{best_str}\n\nType any word in chat to submit a guess!",
+                )
+                return
+
+            game_id = get_todays_game_id()
+            session = GameSession(game_id=game_id, channel_id=channel_id, started_by=interaction.user.id)
+            contexto_bot.sessions[channel_id] = session
+            embed = make_start_embed(game_id)
+            await interaction.response.send_message(embed=embed)
+
         else:
             await interaction.response.send_message(
                 f"ℹ️ **{view.current_game.title()}** is currently in development and will be playable soon!",
@@ -149,9 +181,15 @@ class ViewChartButton(discord.ui.Button):
             embed = generate_daily_comparison_embed(puzzle.game_id, results)
             await interaction.response.send_message(embed=embed)
         elif view.current_game == "contexto":
-            await interaction.response.send_message(
-                "🧠 Use `c!guesses` to see the top closest guesses for Contexto!",
-            )
+            from bots.contexto.bot import bot as contexto_bot, make_guesses_embed
+            channel_id = interaction.channel_id
+            session = contexto_bot.sessions.get(channel_id)
+            if session and session.guesses:
+                await interaction.response.send_message(embed=make_guesses_embed(session))
+            else:
+                await interaction.response.send_message(
+                    "No active Contexto game or guesses in this channel yet! Click **▶️ Start Game** above.", ephemeral=True
+                )
         else:
             await interaction.response.send_message(
                 f"No standings yet for {view.current_game.title()}.", ephemeral=True
@@ -216,17 +254,28 @@ class GeekersHubView(discord.ui.View):
             embed.set_footer(text="Expresso: Uncover daily idioms and expressions with color-coded tile feedback.")
 
         elif self.current_game == "contexto":
+            from bots.contexto.bot import bot as contexto_bot, get_todays_game_id
+            today_id = get_todays_game_id()
+            session = contexto_bot.sessions.get(self.channel_id)
+            if session:
+                best = session.best_guess()
+                best_str = f"Best guess: `{best.word}` (Rank #{best.rank})" if best else "No guesses yet"
+                channel_status = f"⏳ **Game #{session.game_id} in progress** ({session.guess_count()} guesses made · {best_str})"
+            else:
+                channel_status = f"⚪ **No game active.** Click **Start Game** to begin Game #{today_id}!"
+
             embed.add_field(
-                name="🧠 Contexto (Semantic Distance Guesser)",
+                name=f"🧠 Contexto (Daily #{today_id})",
                 value=(
-                    "**How It Works:** Find the secret word! The bot ranks every word by its semantic closeness (1 = closest).\n\n"
-                    "• **Start Game:** Type `c!start` or `/start`\n"
+                    f"**Channel Status:** {channel_status}\n\n"
+                    "**How It Works:** Find the secret word! The bot ranks every word by semantic closeness (1 = closest).\n\n"
+                    "• **Start Game:** Click **Start Game** below or type `c!start`\n"
                     "• **Guessing:** Just type words directly in chat!\n"
                     "• **Help / Hints:** `c!hint`, `c!guesses`, `c!giveup`"
                 ),
                 inline=False,
             )
-            embed.set_footer(text="Contexto: Powered by Rust engine with sub-millisecond word caching.")
+            embed.set_footer(text="Contexto: Word proximity guessing powered by unofficial Contexto API.")
 
         elif self.current_game == "wordle":
             embed.add_field(

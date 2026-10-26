@@ -106,47 +106,41 @@ pip install -e .
 
 ## Running the Bots
 
-### Universal Game Hub (`/geekers`)
-Players can type `/geekers` (or prefix `e!geekers` / `e!menu`) to open an interactive personalized dropdown menu showing their personal stats for each daily game (status today, total solved, streaks, average guesses) along with direct action buttons to start puzzles or view standings.
+### 1. Unified Geekers Bot (Recommended)
 
-### 1. Contexto Bot
-
-#### Rust Engine (High Performance)
-The Rust engine features an in-memory word cache and keep-alive HTTP connection pooling:
+Run all bots together under a single process with the unified `/geekers` dropdown menu and slash command suite:
 
 ```bash
-# Debug build
-cargo run --package contexto-bot
-
-# Optimized release build
-cargo run --package contexto-bot --release
+uv run geekers
 ```
 
-Alternatively, from within the bot directory:
-```bash
-cd bots/contexto
-cargo run --release
-```
-
-#### Python Edition
-```bash
-uv run contexto-bot
-# or
-uv run python -m bots.contexto.bot
-```
-
-For complete command lists and API details, see [`bots/contexto/README.md`](bots/contexto/README.md).
+Once online in your Discord server:
+- Type `/geekers` (or `g!menu`) to open the interactive dropdown game hub.
+- Select **Expresso** or **Contexto** to view your personalized daily stats.
+- Click **Start Game** to launch the puzzle directly in the channel.
+- Auto-guess is active: simply type words in chat once any game has started!
 
 ---
 
-### 2. Expresso Bot
+### 2. Standalone Bot Execution
 
-The Expresso bot includes daily phrase matching, automated midnight drops, evening streak reminders, and side-by-side group standings:
+If you prefer to run individual bots independently:
+
+#### Contexto Bot
+
+- **Rust Engine (High Performance):**
+  ```bash
+  cargo run --package contexto-bot --release
+  ```
+- **Python Edition:**
+  ```bash
+  uv run contexto-bot
+  ```
+
+#### Expresso Bot
 
 ```bash
 uv run expresso-bot
-# or
-uv run python -m bots.expresso.bot
 ```
 
 For complete command lists and rules, see [`bots/expresso/README.md`](bots/expresso/README.md).

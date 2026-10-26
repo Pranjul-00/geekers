@@ -51,7 +51,8 @@
 - [ ] Implement interactive Discord letter-tile interface.
 - [ ] Channel leaderboards and streak tracking.
 
-### Epic 7: Shared Infrastructure & Multi-Bot Runner
-- [ ] Implement shared Discord error handler in `shared/discord_utils.py`.
-- [ ] Implement rate limiting and exponential backoff utility in `shared/http.py`.
-- [ ] Optional: Create a multi-bot unified launcher (`all_bots.py` or Discord cogs runner).
+### Epic 7: Shared Infrastructure & Multi-Bot Runner (Completed)
+- [x] Create unified bot runner `geekers.py` mounting Expresso, Contexto, and Geekers Hub.
+- [x] Register `geekers` console script entrypoint in `pyproject.toml` (`uv run geekers`).
+- [x] Implement unified on_message router directing auto-guesses to active channel game.
+- [x] Integrate dual background schedulers (Expresso midnight drop & reminder, Contexto announcer).
