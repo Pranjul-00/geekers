@@ -1,10 +1,18 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# Rust build
+/target
+Cargo.lock
 
-# Virtual environments
-.venv
+# Environment & Config
+.env
+subscriptions.json
+
+# Python / legacy
+__pycache__/
+*.py[cod]
+.venv/
+.python-version
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
