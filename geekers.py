@@ -14,7 +14,7 @@ from typing import Optional
 import aiohttp
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 from bots.contexto.bot import (
@@ -25,6 +25,9 @@ from bots.contexto.bot import (
     rank_emoji_and_label,
     fetch_rank,
     safe_send,
+    load_subscriptions as load_contexto_subscriptions,
+    save_subscriptions as save_contexto_subscriptions,
+    make_daily_announce_embed as make_contexto_daily_embed,
 )
 from bots.expresso.bot import (
     bot as expresso_bot,
@@ -55,12 +58,9 @@ log = logging.getLogger("geekers")
 
 class GeekersBot(commands.Bot):
     def __init__(self):
+        # Default intents + message_content (do NOT require members intent)
         intents = discord.Intents.default()
         intents.message_content = True
-        try:
-            intents.members = True
-        except Exception:
-            pass
 
         super().__init__(
             command_prefix=["g!", "c!", "e!", "!"],
@@ -68,15 +68,14 @@ class GeekersBot(commands.Bot):
             help_command=None,
         )
         self.expresso_scheduler: Optional[ExpressoScheduler] = None
+        self._last_announced_contexto_game_id: int = get_todays_game_id()
 
     async def setup_hook(self) -> None:
-        # 1. Setup Contexto engine session and background loops
+        # 1. Setup Contexto engine HTTP session
         if not contexto_bot.http_session or contexto_bot.http_session.closed:
             contexto_bot.http_session = aiohttp.ClientSession(
                 headers={"User-Agent": "GeekersBot/1.0 (Contexto Engine)"}
             )
-        if not contexto_bot.daily_game_loop.is_running():
-            contexto_bot.daily_game_loop.start()
 
         # 2. Setup Expresso scheduler (midnight drops & evening reminders)
         self.expresso_scheduler = ExpressoScheduler(self, expresso_storage)
@@ -93,7 +92,11 @@ class GeekersBot(commands.Bot):
         except Exception as e:
             log.debug("contexto_group already registered: %s", e)
 
-        # 4. Sync commands with Discord Gateway
+        # 4. Start Contexto daily rotation loop bound to this running client
+        if not self.contexto_daily_loop.is_running():
+            self.contexto_daily_loop.start()
+
+        # 5. Sync commands with Discord Gateway
         try:
             synced = await self.tree.sync()
             log.info("Geekers Unified Bot synced %d slash commands globally.", len(synced))
@@ -103,8 +106,8 @@ class GeekersBot(commands.Bot):
     async def close(self) -> None:
         if self.expresso_scheduler:
             self.expresso_scheduler.stop()
-        if contexto_bot.daily_game_loop.is_running():
-            contexto_bot.daily_game_loop.cancel()
+        if self.contexto_daily_loop.is_running():
+            self.contexto_daily_loop.cancel()
         if contexto_bot.http_session and not contexto_bot.http_session.closed:
             await contexto_bot.http_session.close()
         await super().close()
@@ -116,6 +119,27 @@ class GeekersBot(commands.Bot):
             name="Daily Games | /geekers or g!menu",
         )
         await self.change_presence(activity=activity)
+
+    @tasks.loop(minutes=1)
+    async def contexto_daily_loop(self):
+        today_id = get_todays_game_id()
+        if today_id <= self._last_announced_contexto_game_id:
+            return
+
+        self._last_announced_contexto_game_id = today_id
+        subscribed = load_contexto_subscriptions()
+        embed = make_contexto_daily_embed(today_id)
+        for channel_id in list(subscribed):
+            ch = self.get_channel(channel_id)
+            if ch and isinstance(ch, (discord.TextChannel, discord.Thread)):
+                try:
+                    await ch.send(embed=embed)
+                except Exception as e:
+                    log.warning("Contexto announcement failed for channel %d: %s", channel_id, e)
+
+    @contexto_daily_loop.before_loop
+    async def before_contexto_daily_loop(self):
+        await self.wait_until_ready()
 
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
@@ -204,7 +228,6 @@ async def prefix_geekers(ctx: commands.Context):
 
 @bot.command(name="cstart", aliases=["c!start"])
 async def unified_cstart(ctx: commands.Context, game: Optional[int] = None):
-    # Delegate to Contexto's prefix start
     from bots.contexto.bot import prefix_start
     await prefix_start(ctx, game)
 
